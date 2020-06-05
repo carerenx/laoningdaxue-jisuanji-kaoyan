@@ -1,0 +1,99 @@
+进程管理 PV算法 文件打印问题 过桥问题
+
+1.  过桥问题
+
+请用信号量解决以下的“过独木桥”问题：同一方向的行人可连续过桥，当某一方向有人过桥时，另一方向的行人必须等待；当某一方向无人过桥时，另一方向的行人可以过桥。
+
+【解析】按照PV算法“五步曲”，将独木桥的两端分别标记为A和B；可解本题如下：
+
+第一步：找进程
+
+l  方向A到B的行人
+
+l  方向B到A的行人
+
+第二步：找动作
+
+(1).   方向A到B的行人的动作
+
+l  过独木桥
+
+(2).   方向B到A的行人的动作
+
+l  过独木桥
+
+第三步：找关系
+
+l  不同方向上的行人要互斥过桥
+
+第四步：找初值
+
+l  用整形变量countA和countB分别表示A、B端上已在独木桥上的行人数，初值为0；
+
+l  设置信号量SA用来实现对countA的互斥访问，初始值为1；
+
+l  设置信号量SB用来实现对countB的互斥访问，初始值为1；
+
+l  设置信号量mutex用来实现两个方向的行人对独木桥的互斥使用，初始值为1。
+
+第五步：写PV算法，具体描述如下：
+Var SA,SB,mutex:semaphore:=1,1,1;
+
+CountA,countB:integer:=0,0:
+
+begin
+
+   parbegin
+
+processA_B:
+
+begin
+
+wait(SA);                    //要过桥，等待修改countA的信号量
+
+if(countA=0)then wait(mutex);   //若A到B无人等待过桥，需等待mutex信号
+
+countA:=countA+1;            //等待过桥的人数量加1
+
+signal(SA);                   //释放互斥信号量
+
+过独木桥；
+
+wait(SA);                    //过了桥，等待修改countA的互斥信号量
+
+       countA:=countA-1;            //等待过桥的人数减1
+
+        if(countA=0) then signal(mutex); //如果A到B已无人要过桥，释放mutex信号
+
+signa(SA);                    //释放修改countA信号
+
+       end
+
+processB_A:
+
+begin
+
+wait(SB);                     //要过桥，等待修改countB的信号量
+
+if(countB=0)then wait(mutex);   //若B到A无人等待过桥，需等待mutex信号
+
+countB:=countB+1;            //等待过桥的人数量加1
+
+signal(SB);                   //释放互斥信号量
+
+过独木桥；                  //
+
+wait(SB);                    //过了桥，等待修改countB的互斥信号量
+
+       countB:=countB-1;            //该方向上过桥人数减1
+
+        if(countB=0) then signal(mutex); //如果B到A已无人要过桥，释放mutex信号
+
+signa(SB);                   //释放修改countB信号
+
+       end
+
+parend
+
+end
+
